@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 1. Установка зависимостей
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Укажите нужную версию Node.js
+
+      - name: Install dependencies
+        run: npm install  # Или другой пакетный менеджер, например, yarn install
+      
+      # 2. Сборка проекта
+      - name: Build project
+        run: npm run build  # Убедитесь, что у вас есть скрипт "build" в вашем package.json
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: build  # Убедитесь, что папка "build" действительно создается при сборке проекта
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
